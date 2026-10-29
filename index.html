@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IFAF Game Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1B1B1E; --bg2:#232326; --panel:#27272A; --panel2:#303034; --line:#3F3F46; --line2:#524F51;
+  --text:#F4F4F5; --muted:#A1A1AA; --gold:#C5B576; --gold-hi:#DCCF9C; --gold-deep:#9C8B4E;
+  --ok:#3DBE84; --bad:#F0605A; --neu:#B9AE85;
+  --cond:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Barlow","Segoe UI",Roboto,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-size:15px;line-height:1.4}
+body{background:radial-gradient(1200px 500px at 85% -10%, #2A2925 0%, transparent 60%), var(--bg)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+input,select,textarea{background:var(--bg2);border:1px solid var(--line);border-radius:6px;color:var(--text)}
+input::placeholder,textarea::placeholder{color:#71717A}
+select option,select optgroup{background:var(--bg2)}
+body.viewer .edit-only{display:none!important}
+body:not(.viewer) .view-only{display:none!important}
+
+.top{background:#141416;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:20px;padding:12px 22px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:18px}
+.brand img{height:40px;width:auto;display:block}
+.brand .app{border-left:1px solid var(--line2);padding-left:18px;font-family:var(--cond);font-weight:600;font-size:24px;letter-spacing:.6px;color:var(--gold-hi);white-space:nowrap}
+.brand .app small{font-family:var(--body);font-size:13px;font-weight:500;color:var(--muted);letter-spacing:0;margin-left:8px}
+.meta{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-left:auto;align-items:center}
+.meta b{color:var(--text);font-weight:600}
+.meta button{background:transparent;border:1px solid var(--line2);color:var(--text);border-radius:6px;padding:5px 12px;font-size:13px}
+.meta button:hover{border-color:var(--gold)}
+.navbtn{border-color:var(--gold-deep)!important;color:var(--gold-hi)!important}
+.navbtn[aria-pressed="true"]{background:var(--gold)!important;color:#18181B!important;border-color:var(--gold)!important}
+
+.banner{background:#33301F;color:var(--gold-hi);border-bottom:1px solid var(--gold-deep);padding:8px 22px;font-size:14px;display:none}
+.banner.show{display:block}
+
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:18px;padding:18px 22px;max-width:1560px;margin:0 auto}
+.log,.details{grid-column:1 / -1}
+@media (max-width:1000px){.grid{grid-template-columns:1fr}}
+.grid[hidden]{display:none}
+
+.source{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--bg2)}
+.seg button{border:0;background:transparent;padding:7px 14px;font-size:14px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel2);color:var(--gold-hi)}
+.source input[type=text]{flex:1;min-width:220px;padding:7px 10px}
+.btn{border:1px solid var(--line2);background:var(--panel);border-radius:6px;padding:7px 12px;font-size:14px;color:var(--text)}
+.btn:hover{border-color:var(--gold)}
+.btn.primary{background:var(--gold);color:#18181B;border-color:var(--gold);font-weight:600}
+.btn.primary:hover{background:var(--gold-hi)}
+.btn[aria-pressed="true"]{background:var(--gold);color:#18181B;border-color:var(--gold);font-weight:600}
+
+.video{position:relative;aspect-ratio:16/9;background:#0E0E10;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.video:fullscreen{border:0;border-radius:0;aspect-ratio:auto;width:100vw;height:100vh}
+#zoomLayer{position:absolute;inset:0;transition:transform .12s ease-out;will-change:transform}
+#playerHost,#playerHost iframe,#playerHost video{position:absolute;inset:0;width:100%;height:100%;border:0}
+#shield{position:absolute;inset:0;cursor:pointer;z-index:2}
+#shield.off{pointer-events:none}
+#shield.zooming{cursor:zoom-in}
+.empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#71717A;text-align:center;padding:20px;font-size:15px}
+.focuswarn{position:absolute;left:10px;top:10px;background:var(--gold);color:#18181B;font-size:13px;font-weight:600;padding:6px 10px;border-radius:5px;display:none;z-index:4}
+.focuswarn.show{display:block}
+.zoomtag{position:absolute;right:10px;top:10px;background:rgba(20,20,22,.85);border:1px solid var(--gold-deep);color:var(--gold-hi);font-family:var(--cond);font-weight:600;font-size:16px;padding:2px 9px;border-radius:5px;z-index:4;display:none}
+.zoomtag.show{display:block}
+.caption{position:absolute;left:50%;bottom:7%;transform:translateX(-50%);width:min(760px,86%);background:rgba(20,20,22,.9);border:1px solid var(--line2);border-left:4px solid var(--gold);border-radius:8px;padding:10px 14px;z-index:3;display:none;pointer-events:none}
+.caption.show{display:block}
+.caption .ci + .ci{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.caption .ch{display:flex;gap:10px;align-items:baseline;margin-bottom:4px;font-size:13px;color:var(--muted)}
+.caption .ct{font-size:16px;line-height:1.45}
+.video:fullscreen .caption .ct{font-size:20px}
+
+.transport{display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap}
+.transport .btn{padding:6px 10px;min-width:44px}
+.rates{display:flex;gap:2px;margin-left:6px}
+.rates button{border:1px solid var(--line2);background:var(--panel);padding:5px 8px;font-size:13px;border-radius:5px;color:var(--muted)}
+.rates button[aria-pressed="true"]{background:var(--gold);color:#18181B;border-color:var(--gold);font-weight:600}
+.tc{font-family:var(--cond);font-size:24px;font-weight:600;margin-left:auto;font-variant-numeric:tabular-nums;color:var(--text)}
+.tc small{font-family:var(--body);font-size:12px;color:var(--muted);font-weight:400;margin-left:8px}
+.startrow{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+.startrow input{width:100px;padding:6px 8px;font-variant-numeric:tabular-nums}
+.startrow .hint{font-size:13px}
+
+.panel{display:flex;flex-direction:column;gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.playhead{transition:background .15s,border-color .15s}
+.playhead .state{font-size:13px;color:var(--muted);min-height:18px}
+.playhead .row{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+.playhead .num{font-family:var(--cond);font-weight:700;font-size:56px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.playhead .num small{font-family:var(--body);font-size:13px;font-weight:500;margin-left:8px;color:var(--muted);letter-spacing:0}
+.playhead.active{background:linear-gradient(135deg,var(--gold-hi),var(--gold) 55%,var(--gold-deep));border-color:var(--gold);color:#18181B}
+.playhead.active .state,.playhead.active .num small{color:#18181B;font-weight:600}
+.playhead.active .btn{background:rgba(24,24,27,.12);border-color:rgba(24,24,27,.35);color:#18181B}
+.playhead.active .btn:hover{border-color:#18181B}
+.markbtn{width:100%;background:var(--text);color:#18181B;border:0;border-radius:10px;padding:12px 14px;font-family:var(--cond);font-weight:700;font-size:22px;display:flex;justify-content:space-between;align-items:center}
+.markbtn .k{font-family:var(--body);font-size:12px;font-weight:600;background:#D4D4D8;padding:2px 8px;border-radius:4px}
+
+fieldset{border:0;margin:0;padding:0;min-width:0;display:flex;flex-direction:column;gap:12px}
+fieldset:disabled{opacity:.35}
+.fld{display:flex;flex-direction:column;gap:6px}
+.fld > .lbl{font-size:13px;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.fld > .lbl b{color:var(--text);font-weight:600}
+.split{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{border:1px solid var(--line2);background:var(--bg2);border-radius:6px;padding:5px 10px;font-size:14px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+.chip:hover{border-color:var(--gold);color:var(--text)}
+.chip[aria-pressed="true"]{background:var(--gold);color:#18181B;border-color:var(--gold);font-weight:600}
+.grades{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.grades .chip{justify-content:center;padding:6px 2px;font-family:var(--cond);font-weight:600;font-size:16px}
+.dot{width:7px;height:7px;border-radius:50%;flex:none}
+.dot.pos{background:var(--ok)} .dot.neg{background:var(--bad)} .dot.neu{background:var(--neu)}
+.chip[aria-pressed="true"] .dot{box-shadow:0 0 0 1.5px #18181B}
+.gradehelp{font-size:13px;color:var(--muted);min-height:18px}
+#fApp{padding:7px 8px;width:100%}
+#fComment{width:100%;min-height:112px;resize:vertical;padding:8px 10px;line-height:1.5}
+.formacts{display:flex;gap:8px;flex-wrap:wrap}
+.formacts .primary{flex:1}
+.keys{font-size:12px;color:var(--muted)}
+
+.nowcard .state{font-size:13px;color:var(--muted)}
+.nowcard .num{font-family:var(--cond);font-weight:700;font-size:44px;line-height:1.05;font-variant-numeric:tabular-nums}
+.nowcard .tags{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px}
+.tag{font-size:13px;border:1px solid var(--line2);border-radius:5px;padding:2px 8px;color:#D4D4D8}
+.nowcard .rmk + .rmk{margin-top:12px;padding-top:2px;border-top:1px solid var(--line)}
+.nowcard .txt{font-size:16px;line-height:1.55;color:var(--text);white-space:pre-wrap}
+.nownav{display:flex;gap:8px}
+.nownav .btn{flex:1}
+.two{display:flex;align-items:center;justify-content:space-between;border:1px dashed var(--line2);border-radius:10px;padding:9px 14px;background:var(--bg2);gap:10px}
+.two.on{border:1px solid var(--gold);background:#2E2C24;box-shadow:inset 4px 0 0 var(--gold)}
+.two strong{font-family:var(--cond);font-size:19px;font-weight:600}
+.two.on strong{color:var(--gold-hi)}
+.two .sub{font-size:12px;color:var(--muted)}
+.switch{width:46px;height:26px;border-radius:13px;border:0;background:var(--line2);position:relative;padding:0;flex:none}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--text);transition:left .12s}
+.switch[aria-pressed="true"]{background:var(--gold)}
+.switch[aria-pressed="true"]::after{left:23px;background:#18181B}
+
+.gb{display:inline-flex;align-items:center;gap:6px;font-family:var(--cond);font-weight:700;font-size:17px;border:1px solid var(--line2);border-radius:5px;padding:0 8px;white-space:nowrap}
+.gb.pos{color:var(--ok);border-color:#2C6A4E} .gb.neg{color:var(--bad);border-color:#7A3532} .gb.neu{color:var(--gold-hi);border-color:var(--gold-deep)}
+
+.log{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.loghead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.loghead h2{font-family:var(--cond);font-size:26px;margin:0 auto 0 0;font-weight:700;color:var(--gold-hi);letter-spacing:.3px}
+.expgrp{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:8px;padding:5px 6px 5px 12px;background:var(--bg2)}
+.exlbl{font-size:14px;font-weight:600;white-space:nowrap}
+.exlbl small{display:block;font-size:11px;font-weight:400;color:var(--muted)}
+.expgrp select{padding:5px 6px}
+.filters{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+.filters .lbl{font-size:13px;color:var(--muted);margin-right:4px}
+.filters .chip small{font-size:12px;opacity:.8}
+.tablewrap{overflow-x:auto}
+table.entries{width:100%;border-collapse:collapse;min-width:900px}
+.entries th{text-align:left;font-size:12px;font-weight:600;color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--line2);white-space:nowrap}
+.entries td{padding:8px 8px;border-bottom:1px solid var(--line);vertical-align:top;font-size:14px}
+.entries tr:hover td{background:rgba(255,255,255,.02)}
+.entries tr.now td{background:rgba(197,181,118,.08)}
+.entries tr.now td:first-child{box-shadow:inset 3px 0 0 var(--gold)}
+.entries tr.editing td{background:#2E2C24}
+.entries tr.sep td{padding:6px 8px;font-family:var(--cond);font-weight:600;font-size:15px;color:var(--muted);background:var(--bg2);letter-spacing:.3px}
+.entries .tcb{font-family:var(--cond);font-weight:600;font-size:19px;background:none;border:0;padding:0 4px;color:var(--text);text-decoration:underline;text-decoration-color:var(--line2);text-underline-offset:4px;font-variant-numeric:tabular-nums}
+.entries .tcb:hover{color:var(--gold-hi);text-decoration-color:var(--gold)}
+.entries .cmt{white-space:pre-wrap;line-height:1.5;color:#E4E4E7;min-width:300px}
+.entries .cmt.none{color:#71717A;font-style:italic}
+.entries .pos{white-space:nowrap}
+.entries .app{font-family:var(--cond);font-weight:600;font-size:16px;white-space:nowrap}
+.entries .acts{white-space:nowrap;text-align:right}
+.entries .acts button{border:1px solid var(--line2);background:transparent;border-radius:5px;padding:3px 9px;font-size:13px;margin-left:4px;color:var(--text)}
+.entries .acts button:hover{border-color:var(--gold)}
+.entries .acts button.del:hover{border-color:var(--bad);color:var(--bad)}
+.emptylog{color:var(--muted);padding:18px 4px;font-size:14px}
+.foot{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--line);align-items:center}
+.foot .spacer{flex:1}
+.foot .hint{color:var(--muted);font-size:13px}
+.foot .danger:hover{border-color:var(--bad);color:var(--bad)}
+
+.details{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.details h2{font-family:var(--cond);font-size:26px;margin:0;font-weight:700;color:var(--gold-hi);letter-spacing:.3px}
+.dhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.dhead h2{margin-right:auto}
+.dgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:22px}
+@media (max-width:1000px){.dgrid{grid-template-columns:1fr}}
+.dcol{display:flex;flex-direction:column;gap:10px}
+.dcol h3{font-family:var(--cond);font-weight:600;font-size:19px;margin:4px 0 0;color:var(--text)}
+.frow{display:grid;grid-template-columns:110px minmax(0,1fr);gap:8px;align-items:center;font-size:14px;color:var(--muted)}
+.frow input{padding:6px 8px;width:100%}
+.nrow{display:grid;grid-template-columns:110px minmax(0,1fr);gap:8px;font-size:14px;color:var(--muted)}
+.nrow > span{padding-top:7px}
+.nrow textarea{width:100%;min-height:62px;resize:vertical;padding:7px 9px;line-height:1.5}
+.nrow.general textarea{min-height:84px}
+.ro{color:var(--text);white-space:pre-wrap;line-height:1.55;padding-top:6px}
+.ro.none{color:#71717A}
+body.viewer .frow input,body.viewer .nrow textarea{display:none}
+body:not(.viewer) .ro{display:none}
+
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--text);color:#18181B;padding:10px 16px;border-radius:8px;font-size:14px;display:none;gap:14px;align-items:center;box-shadow:0 8px 30px rgba(0,0,0,.45);z-index:60;max-width:90vw;font-weight:500}
+#toast.show{display:flex}
+#toast button{background:transparent;border:1px solid #8A8A93;color:#18181B;border-radius:5px;padding:3px 10px}
+#toast.err{background:var(--bad);color:#fff}
+#toast.err button{color:#fff}
+
+.about{display:grid;grid-template-columns:220px minmax(0,1fr);gap:36px;max-width:1180px;margin:0 auto;padding:28px 22px 60px}
+.about[hidden]{display:none}
+@media (max-width:860px){.about{grid-template-columns:1fr}.toc{position:static!important}}
+.toc{position:sticky;top:20px;align-self:start;display:flex;flex-direction:column;gap:2px;border-left:1px solid var(--line);padding-left:14px}
+.toc-h{font-size:12px;color:var(--muted);margin:0 0 6px}
+.toc a{color:var(--muted);text-decoration:none;font-size:14px;padding:3px 0}
+.toc a:hover{color:var(--gold-hi)}
+.doc{max-width:74ch}
+.doc h2{font-family:var(--cond);font-weight:700;font-size:40px;color:var(--gold-hi);margin:0 0 8px;letter-spacing:.3px}
+.doc .lede{font-size:18px;color:var(--text);margin:0 0 26px;line-height:1.5}
+.doc h3{font-family:var(--cond);font-weight:600;font-size:26px;margin:36px 0 10px;color:var(--text);padding-top:14px;border-top:1px solid var(--line);scroll-margin-top:16px}
+.doc p{color:#D4D4D8;line-height:1.62;margin:0 0 14px}
+.doc strong{color:var(--text)}
+.doc code{font-size:13px;background:var(--bg2);border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--gold-hi)}
+.doc pre{background:#141416;border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0 0 14px}
+.doc pre code{background:none;border:0;padding:0;color:#D4D4D8;font-size:13px;line-height:1.55}
+.dtable{width:100%;border-collapse:collapse;margin:4px 0 16px;font-size:14px}
+.dtable th{text-align:left;color:var(--muted);font-weight:600;font-size:12px;padding:6px 10px;border-bottom:1px solid var(--line2)}
+.dtable td{padding:8px 10px;border-bottom:1px solid var(--line);color:#D4D4D8;vertical-align:top}
+.dtable td:first-child{color:var(--text);white-space:nowrap}
+kbd{font-family:var(--cond);font-weight:700;font-size:14px;background:var(--panel2);border:1px solid var(--line2);border-bottom-width:2px;border-radius:4px;padding:0 7px;color:var(--gold-hi)}
+.credit{font-size:13px!important;color:var(--muted)!important;margin-top:28px!important}
+
+.tour{position:fixed;inset:0;z-index:50}
+.tour[hidden]{display:none}
+.tour-spot{position:fixed;border-radius:12px;box-shadow:0 0 0 9999px rgba(8,8,10,.78);outline:2px solid var(--gold);outline-offset:4px;transition:top .25s,left .25s,width .25s,height .25s;pointer-events:none}
+.tour-spot.none{top:50%!important;left:50%!important;width:0!important;height:0!important;outline:0}
+.tour-card{position:fixed;width:min(360px,calc(100vw - 32px));background:var(--panel);border:1px solid var(--gold-deep);border-top:4px solid var(--gold);border-radius:12px;padding:18px 20px 16px;box-shadow:0 18px 50px rgba(0,0,0,.55);transition:top .25s,left .25s}
+.tour-step{font-size:12px;color:var(--gold-hi);font-weight:600;letter-spacing:.4px}
+.tour-card h3{font-family:var(--cond);font-weight:700;font-size:26px;margin:4px 0 8px;color:var(--text)}
+.tour-body{font-size:14.5px;line-height:1.55;color:#D4D4D8}
+.tour-body p{margin:0 0 10px}
+.tour-body kbd{font-size:13px}
+.tour-nav{display:flex;align-items:center;gap:8px;margin-top:14px}
+.tour-nav button{white-space:nowrap}
+.tour-skip{background:none;border:0;color:var(--muted);font-size:13px;padding:4px 0;margin-right:auto;text-decoration:underline;text-underline-offset:3px}
+.tour-skip:hover{color:var(--text)}
+.tour-dots{display:flex;gap:5px;margin-right:6px}
+.tour-dots i{width:7px;height:7px;border-radius:50%;background:var(--line2)}
+.tour-dots i.on{background:var(--gold)}
+#tourBack[hidden]{display:none}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1 class="brand" style="margin:0"><img src="data:image/png;base64,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" alt="IFAF, International Federation of American Football"><span class="app">Game Review<small class="view-only">Official view</small></span></h1>
+  <div class="meta">
+    <div class="edit-only">Game start: <b id="metaStart">not set</b></div>
+    <div>Plays: <b id="metaCount">0</b></div>
+    <button id="btnTour" class="edit-only" title="Show the quick tour again">Tour</button>
+    <button id="btnAbout" class="navbtn" aria-pressed="false">How it works</button>
+    <button id="btnBackup" class="edit-only" title="Download the review file. Also the file you send to the officials.">Backup</button>
+    <button id="btnRestore" title="Open a review file">Load review</button>
+    <input type="file" id="restoreFile" accept=".json,application/json" hidden>
+  </div>
+</header>
+<div class="banner" id="fileBanner">You opened this tool straight from your disk. YouTube usually blocks the video in that case: use the GitHub Pages version or local file mode.</div>
+
+<main class="grid" id="toolView">
+  <section class="stage">
+    <div class="source" id="srcBar">
+      <div class="seg" role="group" aria-label="Video source">
+        <button id="modeYt" aria-pressed="true">YouTube</button>
+        <button id="modeFile" aria-pressed="false">Local file</button>
+      </div>
+      <input type="text" id="ytUrl" class="edit-only" placeholder="Paste the YouTube link of the game" autocomplete="off">
+      <button class="btn primary" id="btnLoad">Load video</button>
+      <input type="file" id="localFile" accept="video/*" hidden>
+    </div>
+
+    <div class="video" id="videoBox">
+      <div id="zoomLayer">
+        <div class="empty" id="emptyMsg">Paste the game link to get started.</div>
+        <div id="playerHost"></div>
+      </div>
+      <div id="shield" title="Click to play or pause. Hold Z to zoom where the mouse is."></div>
+      <div class="caption" id="caption" aria-live="polite"></div>
+      <div class="zoomtag" id="zoomTag"></div>
+      <div class="focuswarn" id="focusWarn">Shortcuts paused: click outside the video to resume them</div>
+    </div>
+
+    <div class="transport">
+      <button class="btn" id="btnPlay" title="Play or pause (spacebar)">Play</button>
+      <button class="btn" data-nudge="-5" title="Left arrow">−5 s</button>
+      <button class="btn" data-nudge="-1" title="Shift + left arrow">−1 s</button>
+      <button class="btn" data-nudge="1" title="Shift + right arrow">+1 s</button>
+      <button class="btn" data-nudge="5" title="Right arrow">+5 s</button>
+      <div class="rates" role="group" aria-label="Playback speed">
+        <button data-rate="0.25" aria-pressed="false">¼x</button>
+        <button data-rate="0.5" aria-pressed="false">½x</button>
+        <button data-rate="1" aria-pressed="true">1x</button>
+        <button data-rate="1.5" aria-pressed="false">1.5x</button>
+        <button data-rate="2" aria-pressed="false">2x</button>
+      </div>
+      <button class="btn" id="btnZoom" aria-pressed="false" title="Keep the zoom on and follow the mouse (Shift + Z)">Zoom</button>
+      <button class="btn" id="btnFull" title="Full screen (F)">Full screen</button>
+      <button class="btn" id="btnShield" title="Use YouTube's own controls (quality, captions)">YouTube controls</button>
+      <div class="tc" id="tcNow">0:00:00<small id="tcGame"></small></div>
+    </div>
+
+    <div class="startrow edit-only">
+      <label for="startInput">Game start</label>
+      <input id="startInput" placeholder="0:05:38" autocomplete="off">
+      <button class="btn" id="btnStartNow">Use current time</button>
+      <span class="hint">Plays can't be marked before this point.</span>
+    </div>
+  </section>
+
+  <aside class="panel">
+    <!-- Reviewer: play form -->
+    <div class="edit-only panel" id="formPanel">
+      <div class="card playhead" id="playHead">
+        <div class="state" id="playState">Press M when a play worth a remark starts</div>
+        <div class="row">
+          <div class="num" id="playTc">—</div>
+          <button class="btn" id="btnRetime" title="Move this play to the current video time">Use current time</button>
+        </div>
+      </div>
+      <button class="markbtn" id="btnMark">Mark play <span class="k">M</span></button>
+
+      <fieldset id="form" disabled>
+        <div class="split">
+          <div class="fld"><div class="lbl">Play type</div>
+            <div class="seg" role="group" aria-label="Play type" id="fType">
+              <button data-v="Rules" aria-pressed="false">Rules</button>
+              <button data-v="Mechanics" aria-pressed="false">Mechanics</button>
+            </div>
+          </div>
+          <div class="fld"><div class="lbl">Half <span>H</span></div>
+            <div class="seg" role="group" aria-label="Half" id="fHalf">
+              <button data-v="1" aria-pressed="true">1st</button>
+              <button data-v="2" aria-pressed="false">2nd</button>
+            </div>
+          </div>
+        </div>
+        <div class="fld"><div class="lbl">Position <span>one or more</span></div><div class="chips" id="fPos"></div></div>
+        <div class="fld"><div class="lbl">Application <span id="appHint">optional</span></div>
+          <select id="fApp" aria-label="Application"></select>
+        </div>
+        <div class="fld"><div class="lbl">Grading</div>
+          <div class="chips grades" id="fGrade"></div>
+          <div class="gradehelp" id="gradeHelp"></div>
+        </div>
+        <div class="fld"><div class="lbl"><label for="fComment">Comment</label><span>Ctrl + Enter saves</span></div>
+          <textarea id="fComment" placeholder="Feedback for the official" spellcheck="true"></textarea>
+        </div>
+        <div class="formacts">
+          <button class="btn primary" id="btnSave">Save play</button>
+          <button class="btn" id="btnSaveMore" title="Save and add another remark on the same play">Save + same play</button>
+          <button class="btn" id="btnCancel" title="Esc">Cancel</button>
+        </div>
+      </fieldset>
+      <div class="keys">M marks a play and pauses the video. Esc leaves a field, then cancels. F full screen, hold Z to zoom.</div>
+    </div>
+
+    <!-- Official: current play -->
+    <div class="view-only panel">
+      <div class="card nowcard" id="nowCard"></div>
+      <div class="nownav">
+        <button class="btn" id="btnPrev" title="P">Previous play</button>
+        <button class="btn primary" id="btnNext" title="N">Next play</button>
+      </div>
+      <div class="two" id="stopBox">
+        <div><strong>Stop at each play</strong><div class="sub">The video pauses when it reaches a remark</div></div>
+        <button class="switch" id="stopSwitch" aria-pressed="true" aria-label="Stop at each play"></button>
+      </div>
+      <div class="two" id="capBox">
+        <div><strong>Comments on the video</strong><div class="sub">Shows each remark over the image, also in full screen</div></div>
+        <button class="switch" id="capSwitch" aria-pressed="true" aria-label="Comments on the video"></button>
+      </div>
+      <div class="keys">Space plays or pauses. N and P move between plays. F full screen, hold Z to zoom where the mouse is.</div>
+    </div>
+  </aside>
+
+  <section class="log">
+    <div class="loghead" id="logHead">
+      <h2>Plays</h2>
+      <div class="expgrp edit-only">
+        <span class="exlbl">Game Review plays <small>columns A to G</small></span>
+        <select id="scopeRows" aria-label="Rows to copy"><option value="all">All, with END OF HALF</option><option value="1">1st half</option><option value="2">2nd half</option></select>
+        <button class="btn" id="btnCopyRows">Copy</button>
+      </div>
+      <button class="btn edit-only" id="btnCopyView" title="Link to the official view, to send with the review file">Copy official view link</button>
+    </div>
+    <div class="filters" id="filters"></div>
+    <div class="tablewrap" id="logWrap"></div>
+    <div class="foot">
+      <span class="hint">Click a timecode to go to that moment in the video.</span>
+      <span class="spacer"></span>
+      <button class="btn danger edit-only" id="btnClear">Delete all plays</button>
+    </div>
+  </section>
+
+  <section class="details" id="details">
+    <div class="dhead">
+      <h2>Game details and notes</h2>
+      <button class="btn edit-only" id="btnCopyHead" title="Column B, rows 1 to 16 of the Game Review sheet">Copy for column B</button>
+    </div>
+    <div class="dgrid">
+      <div class="dcol" id="dInfo"></div>
+      <div class="dcol" id="dNotes"></div>
+    </div>
+  </section>
+</main>
+
+<section class="about" id="about" hidden>
+  <nav class="toc" aria-label="Contents">
+    <p class="toc-h">On this page</p>
+    <a href="#a-purpose">Purpose</a>
+    <a href="#a-workflow">Reviewer workflow</a>
+    <a href="#a-keys">Keyboard</a>
+    <a href="#a-zoom">Full screen and zoom</a>
+    <a href="#a-export">Export to the review sheet</a>
+    <a href="#a-official">Official view</a>
+    <a href="#a-limits">Assumptions and limitations</a>
+    <a href="#a-data">Data model and storage</a>
+    <a href="#a-extend">Changing or extending it</a>
+    <a href="#a-versions">Version history</a>
+  </nav>
+  <article class="doc">
+    <h2>How Game Review works</h2>
+    <p class="lede">Game Review builds the play-by-play part of the IFAF game review sheet while you watch the game, and lets the officials replay the review with every remark in place.</p>
+
+    <h3 id="a-purpose">Purpose</h3>
+    <p>IFAF video supervisors comment on selected plays: the timecode, a link to that moment, the play type, the position or positions involved, the rule or situation, a grade and a written comment. Typing timecodes by hand and switching between the video and the spreadsheet is slow and error prone. This tool reads the timecode straight from the player, keeps the categories of the review sheet as fixed choices, and copies everything back into the sheet in its own column order.</p>
+    <p>It is a companion to Game Pace and works the same way: same look, same player controls, same backups. The two are separate tools for now.</p>
+
+    <h3 id="a-workflow">Reviewer workflow</h3>
+    <p>Load the game, set the game start, and watch. When a play deserves a remark, press <kbd>M</kbd>: the video pauses and a new play opens in the form with the current timecode. Choose Rules or Mechanics, one or more positions, the application code when it applies (usually for Rules), the grade, and write the comment. <kbd>Ctrl</kbd> + <kbd>Enter</kbd> saves. To remark on a second official in the same play, use <strong>Save + same play</strong>: it saves and opens a new remark with the same timecode, play type and half.</p>
+    <p>Every play in the list can be edited or deleted. Edit loads it back into the form; while editing you can move it to the current video time. Delete has a short undo window. The position filter above the list shows the remarks for one official, together with the ones addressed to the whole crew, which helps when writing the notes for each position.</p>
+    <p>Game details (reviewer, supervisor, date, crew) and the general and per-position notes live at the bottom of the page. Reviewer and supervisor are remembered for the next game.</p>
+
+    <h3 id="a-keys">Keyboard</h3>
+    <div class="tablewrap"><table class="dtable"><tbody>
+      <tr><td><kbd>M</kbd></td><td>Mark a play at the current time and pause the video.</td></tr>
+      <tr><td><kbd>Ctrl</kbd> + <kbd>Enter</kbd></td><td>Save the play in the form, also while typing the comment.</td></tr>
+      <tr><td><kbd>Esc</kbd></td><td>Leave the field you are typing in; pressed again, cancel the play in the form.</td></tr>
+      <tr><td><kbd>H</kbd></td><td>Switch between 1st and 2nd half for the next plays.</td></tr>
+      <tr><td><kbd>Space</kbd></td><td>Play or pause.</td></tr>
+      <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>Rewind or skip 5 seconds; with Shift, 1 second.</td></tr>
+      <tr><td><kbd>,</kbd> <kbd>.</kbd></td><td>Step back or forward 0.2 seconds, for frame-by-frame plays.</td></tr>
+      <tr><td><kbd>N</kbd> <kbd>P</kbd></td><td>Go to the next or previous play in the list.</td></tr>
+      <tr><td><kbd>F</kbd></td><td>Full screen on or off.</td></tr>
+      <tr><td><kbd>Z</kbd></td><td>Hold to zoom where the mouse is; scroll while holding to change the magnification. <kbd>Shift</kbd> + <kbd>Z</kbd> keeps the zoom on.</td></tr>
+    </tbody></table></div>
+
+    <h3 id="a-zoom">Full screen and zoom</h3>
+    <p>Full screen uses the tool's own frame, not YouTube's, so the zoom and the comments over the video keep working. YouTube's own full screen button is turned off for that reason. Marking a play in full screen leaves full screen so the form is visible.</p>
+    <p>The page cannot read the pixels of a YouTube video, so the zoom enlarges the whole player around the mouse instead of using a lens. The result is the same to the eye. Sharpness depends on the resolution of the video: use <strong>YouTube controls</strong> to raise the quality when you need detail.</p>
+
+    <h3 id="a-export">Export to the review sheet</h3>
+    <p><strong>Plays.</strong> Copy places the plays on the clipboard as columns A to G of the Game Review sheet, in time order, ready to paste at A19. Column B is a self-contained link formula to that second of the video, so it works no matter how column A is formatted. The scope selector copies everything with an END OF HALF row between halves, or only one half, for templates where the END OF HALF row is already in place. Line breaks inside a comment are turned into spaces so each play stays on one row.</p>
+    <p><strong>Game details and notes.</strong> Copy for column B places 16 lines ready to paste at B1: reviewer, supervisor, game link, start time, date, the four crew names in rows 7 to 10, and the general and per-position notes in rows 12 to 16. Rows 6, 11 and the tempo block in columns D and E are not touched.</p>
+
+    <h3 id="a-official">Official view</h3>
+    <p>The official view is the same tool opened with <code>?view</code> at the end of its address. The officials keep receiving the review sheet as usual; the review file you download with Backup, together with the official view link, lets them replay the whole review. They open the link, load the file, and the video comes back with every play in the list, the notes, and the current remark next to the player.</p>
+    <p>By default the video pauses when it reaches each remarked play and shows the comment over the image, also in full screen. Both can be turned off. The official view is read only: nothing can be edited or exported from it, and the last review loaded stays available in that browser.</p>
+
+    <h3 id="a-limits">Assumptions and limitations</h3>
+    <p>The categories (play type, positions, application codes and grades) mirror the review sheet in use in October 2026. Changing them requires a code change, described below.</p>
+    <p>Some channels disable playback outside YouTube; local file mode plays a downloaded copy with the same tools, but the copied links then have no video address. Since 2025 YouTube rejects embedded players on pages without a web origin, so the tool must be opened from its published address and not from a file on disk.</p>
+    <p>Reviews are stored in the browser where they were made. Backups are the way to move them to another computer or hand them to someone else.</p>
+
+    <h3 id="a-data">Data model and storage</h3>
+    <p>Each review is a session keyed by its video, as in Game Pace.</p>
+<pre><code>{
+  "key": "yt:-1iW9TCiZA0",
+  "src": { "kind": "yt", "id": "-1iW9TCiZA0", "url": "https://www.youtube.com/watch?v=-1iW9TCiZA0" },
+  "start": 338,             // game start in video seconds, or null
+  "half": 1,                // half applied to new plays
+  "info": { "reviewer": "", "supervisor": "", "date": "",
+            "crew":  { "R": "", "DJ": "", "FJ": "", "SJ": "" },
+            "notes": { "general": "", "R": "", "DJ": "", "FJ": "", "SJ": "" } },
+  "entries": [
+    { "id": "m1x2y3", "t": 339.4, "half": 1,
+      "type": "Rules",      // Rules | Mechanics
+      "pos": ["DJ","SJ"],   // R DJ FJ SJ BJ C (C = Crew)
+      "app": "ICD",         // Rule Key code, or "" when none
+      "grade": "NC",
+      "comment": "…",
+      "marks": [] }         // reserved for drawings over the video
+  ]
+}</code></pre>
+    <p>Sessions are saved in localStorage under <code>review:&lt;key&gt;</code>, the last one opened under <code>review:last</code>, reviewer settings under <code>review:settings</code>, and the review loaded in the official view under <code>review:viewer</code>. A backup wraps the session as <code>{"app":"ifaf-game-review","v":1,"session":{…}}</code>. The <code>marks</code> list is empty in this version and is kept so that drawings can be added later without breaking older review files.</p>
+
+    <h3 id="a-extend">Changing or extending it</h3>
+    <p>The categories live in four constants at the top of the script: <code>POS</code> for positions, <code>GRADES</code> for grades with their meaning and whether they read as positive, negative or neutral, <code>FOULS</code> and <code>SITUATIONS</code> for the application codes of the Rule Key. Keep existing IDs when renaming labels, so saved reviews still load. If the session format changes, increase the backup version and keep the loader able to read older files.</p>
+    <p>Before publishing a change, check by hand: marking a play and saving it, two remarks on the same play, editing and retiming, delete and undo, reopening the page, both copy buttons pasted into a copy of the review sheet, and a backup loaded in the official view.</p>
+
+    <h3 id="a-versions">Version history</h3>
+    <div class="tablewrap"><table class="dtable"><tbody>
+      <tr><td>1.0</td><td>October 2026</td><td>First release. Play marking from the video, review sheet categories, editable list with position filter, game details and notes, copy to the review sheet, full screen and zoom, official view with stop at each play and comments over the video, autosave and backups.</td></tr>
+    </tbody></table></div>
+    <p class="credit">Concept and functional design by Mariano Viotto, IFAF Video Supervisor. Built with Claude (Anthropic).</p>
+  </article>
+</section>
+
+<div class="tour" id="tour" hidden>
+  <div class="tour-spot" id="tourSpot"></div>
+  <div class="tour-card" id="tourCard" role="dialog" aria-modal="true" aria-labelledby="tourTitle">
+    <div class="tour-step" id="tourStep"></div>
+    <h3 id="tourTitle"></h3>
+    <div class="tour-body" id="tourBody"></div>
+    <div class="tour-nav">
+      <button class="tour-skip" id="tourSkip">Skip tour</button>
+      <div class="tour-dots" id="tourDots"></div>
+      <button class="btn" id="tourBack">Back</button>
+      <button class="btn primary" id="tourNext">Next</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"><span id="toastMsg"></span><button id="toastAct" hidden>Undo</button></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ---------- categories (mirror the IFAF Game Review sheet) ---------- */
+const POS = [
+  {id:'R',  name:'Referee'},
+  {id:'DJ', name:'Down Judge'},
+  {id:'FJ', name:'Field Judge'},
+  {id:'SJ', name:'Side Judge'},
+  {id:'BJ', name:'Back Judge'},
+  {id:'C',  name:'Crew'}
+];
+const CREW_POS = ['R','DJ','FJ','SJ'];   // rows 7 to 10 and 13 to 16 of the sheet
+const GRADES = [
+  {id:'CC',  k:'pos', txt:'Correct call'},
+  {id:'MC',  k:'neu', txt:'Marginal call'},
+  {id:'IC',  k:'neg', txt:'Incorrect call'},
+  {id:'CNC', k:'pos', txt:'Correct no call'},
+  {id:'NC',  k:'neg', txt:'Not called, should have been'},
+  {id:'CM',  k:'pos', txt:'Correct mechanics'},
+  {id:'IM',  k:'neg', txt:'Incorrect mechanics'},
+  {id:'CJ',  k:'pos', txt:'Correct judgement (forward progress, catch or no catch…)'},
+  {id:'IJ',  k:'neg', txt:'Incorrect judgement'},
+  {id:'Disc',k:'neu', txt:'Discussion play: not necessarily right or wrong, worth talking about'},
+  {id:'IR',  k:'neg', txt:'Incorrect rule enforcement'},
+  {id:'EX',  k:'pos', txt:'Exceptional: an excellent call, no call, judgement or mechanics'},
+  {id:'NG',  k:'neu', txt:'No grade: not clear from film what the correct call should be'},
+  {id:'NR',  k:'neg', txt:'Negative remark'}
+];
+const FOULS = [
+  ['ICO','Illegal Contact Offense'],['ICD','Illegal Contact Defense'],['OPI','Offensive Pass Interference'],
+  ['DPI','Defensive Pass Interference'],['AIM','Aiming'],['GIN','Game Interference'],['UNC','Unsportsmanlike Conduct'],
+  ['DSQ','Disqualification'],['ITC','Illegal Tactics'],['ILK','Illegal Kick'],['IRP','Illegal Run Play'],['IRU','Illegal Run'],
+  ['IHO','Illegal Hand-Off'],['IFP','Illegal Forward Pass'],['IBP','Illegal Backward Pass'],['BPB','Backward Pass Batted Forward'],
+  ['JMP','Jumping'],['DIV','Diving'],['FLG','Flag Guarding'],['ISP','Illegal Snap'],['FST','False Start'],
+  ['ENC','Offensive Encroachment'],['DSG','Disconcerting Signals'],['DOG','Delay Of Game'],['DOF','Defensive Offside'],
+  ['OSH','Offensive Shielding'],['DSH','Defensive Shielding'],['IPF','Illegal Flag Pull'],['ILP','Illegal Participation'],
+  ['SLI','Sideline Interference'],['SUB','Illegal Substitution'],['DOP','Delay Of Pass'],['ITP','Illegal Touching Of A Forward Pass'],
+  ['ILB','Illegal Blitz Signal'],['ILR','Illegal Rush'],['ILM','Illegal Motion'],['ISH','Illegal Shift'],['ILE','Illegal Equipment'],
+  ['MME','Missing Mandatory Equipment'],['BLW','Bleeding Wound'],['FCH','Failed Challenge']
+];
+const SITUATIONS = [
+  ['PEN ENF','Penalty enforcement (not mechanics)'],['COIN TOSS','Coin toss procedure'],['DOWN COUNT','Issues with the down'],
+  ['TIMING','Game clock or play clock'],['SACK','Sack calls'],['CATCH','Catch or incomplete'],['FUMBLE','Fumbles'],
+  ['SPOT','Spots, especially around the ML and GL'],['OOB','Runner on the sideline or not']
+];
+const posName = id => (POS.find(p=>p.id===id)||{name:id}).name;
+const gradeOf = id => GRADES.find(g=>g.id===id) || {id, k:'neu', txt:''};
+
+const $ = id => document.getElementById(id);
+const VIEW = new URLSearchParams(location.search).has('view');
+document.body.classList.toggle('viewer', VIEW);
+
+let S = blankState();
+let settings = loadSettings();
+let player = null;
+let draft = null;          // play being written: {editId|null, t, half, type, pos[], app, grade, comment}
+let lastDeleted = null;
+let mode = 'yt';
+let filter = 'all';
+let activeId = null;
+let lastT = null;
+let stopGuard = -1;      // official view: a play already stopped at is not stopped at again
+
+function blankInfo(){ return {reviewer:'', supervisor:'', date:'', crew:{R:'',DJ:'',FJ:'',SJ:''}, notes:{general:'',R:'',DJ:'',FJ:'',SJ:''}}; }
+function blankState(){ return {key:null, src:null, start:null, half:1, info:blankInfo(), entries:[]}; }
+function normalize(s){
+  const o = Object.assign(blankState(), s||{});
+  const bi = blankInfo(), si = o.info||{};
+  o.info = Object.assign(bi, si, {crew:Object.assign(bi.crew, si.crew||{}), notes:Object.assign(bi.notes, si.notes||{})});
+  o.entries = (o.entries||[]).map(e=>Object.assign({half:1, type:'', pos:[], app:'', grade:'', comment:'', marks:[]}, e));
+  return o;
+}
+
+/* ---------- storage ---------- */
+function loadSettings(){
+  const d={reviewer:'', supervisor:'', scopeRows:'all', stop:true, cap:true};
+  try{ return Object.assign(d, JSON.parse(localStorage.getItem('review:settings')||'{}')); }catch(e){ return d; }
+}
+function saveSettings(){ try{ localStorage.setItem('review:settings', JSON.stringify(settings)); }catch(e){} }
+function save(){
+  if(VIEW){ try{ localStorage.setItem('review:viewer', JSON.stringify(S)); }catch(e){} return; }
+  if(!S.key) return;
+  try{ localStorage.setItem('review:'+S.key, JSON.stringify(S)); localStorage.setItem('review:last', S.key); }
+  catch(e){ toast('This browser could not save the review. Download a backup now.', {err:true}); }
+}
+function loadSession(key){
+  try{ const raw=localStorage.getItem('review:'+key); return raw ? normalize(JSON.parse(raw)) : null; }catch(e){ return null; }
+}
+
+/* ---------- time helpers ---------- */
+function tc(sec){
+  sec=Math.max(0, Math.floor(sec));
+  const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60), s=sec%60;
+  return h+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+function parseTc(str){
+  str=String(str||'').trim(); if(!str) return null;
+  if(/^\d+(\.\d+)?$/.test(str)) return parseFloat(str);
+  const p=str.split(':').map(Number);
+  if(p.some(isNaN) || p.length>3) return null;
+  return p.reduce((a,b)=>a*60+b,0);
+}
+const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const sorted = () => [...S.entries].sort((a,b)=> (a.half-b.half) || (a.t-b.t));
+
+/* ---------- toast ---------- */
+let toastTimer;
+function toast(msg, opts={}){
+  const t=$('toast'); $('toastMsg').textContent=msg;
+  t.classList.toggle('err', !!opts.err);
+  const act=$('toastAct'); act.hidden=!opts.undo; act.onclick=opts.undo||null;
+  t.classList.add('show'); clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'), opts.undo?6000:2800);
+}
+
+/* ---------- players (same adapter as Game Pace) ---------- */
+let ytPromise=null;
+function ensureYT(){
+  if(window.YT && window.YT.Player) return Promise.resolve();
+  if(ytPromise) return ytPromise;
+  ytPromise=new Promise((res,rej)=>{
+    window.onYouTubeIframeAPIReady=res;
+    const s=document.createElement('script'); s.src='https://www.youtube.com/iframe_api';
+    s.onerror=()=>{ ytPromise=null; rej(); };
+    document.head.appendChild(s);
+    setTimeout(()=>{ if(!(window.YT&&window.YT.Player)){ ytPromise=null; rej(); } }, 12000);
+  });
+  return ytPromise;
+}
+function teardown(){ if(player && player.destroy) player.destroy(); player=null; $('playerHost').innerHTML=''; }
+function ytIdFrom(url){
+  url=String(url||'').trim();
+  if(/^[\w-]{11}$/.test(url)) return url;
+  const m=url.match(/(?:v=|youtu\.be\/|\/embed\/|\/live\/|\/shorts\/)([\w-]{11})/);
+  return m ? m[1] : null;
+}
+function ytError(code){
+  const msgs={2:'The link is not valid.',5:'The player could not load this video.',100:'The video does not exist or is private.',
+    101:'The channel does not allow this video to play outside YouTube. Download it and use local file mode.',
+    150:'The channel does not allow this video to play outside YouTube. Download it and use local file mode.',
+    153:'YouTube rejected the player because the page has no web origin. Open the GitHub Pages version.'};
+  toast(msgs[code]||('YouTube returned error '+code+'.'), {err:true});
+}
+function loadYouTube(id){
+  teardown();
+  $('emptyMsg').textContent='Loading video…'; $('emptyMsg').style.display='flex';
+  $('playerHost').innerHTML='<div id="yt"></div>';
+  ensureYT().then(()=>{
+    // fs:0 removes YouTube's own full screen so the tool's frame (zoom, captions) is used instead.
+    const vars={rel:0, playsinline:1, modestbranding:1, fs:0, disablekb:1};
+    if(location.protocol.startsWith('http')) vars.origin=location.origin;
+    const p=new YT.Player('yt',{videoId:id, width:'100%', height:'100%', playerVars:vars,
+      events:{
+        onReady:()=>{ $('emptyMsg').style.display='none'; applyRate(currentRate); },
+        onError:e=>ytError(e.data),
+        onStateChange:updatePlayBtn
+      }});
+    player={
+      time:()=>(p.getCurrentTime ? p.getCurrentTime() : 0)||0,
+      seek:t=>p.seekTo && p.seekTo(Math.max(0,t), true),
+      toggle:()=>{ if(!p.getPlayerState) return; p.getPlayerState()===1 ? p.pauseVideo() : p.playVideo(); },
+      pause:()=>p.pauseVideo && p.pauseVideo(),
+      playing:()=>!!(p.getPlayerState && p.getPlayerState()===1),
+      rate:r=>p.setPlaybackRate && p.setPlaybackRate(r),
+      destroy:()=>{ try{p.destroy();}catch(e){} }
+    };
+  }).catch(()=>{ $('emptyMsg').textContent='Could not load the YouTube player. Check your internet connection.'; });
+}
+function loadLocal(file){
+  teardown();
+  const v=document.createElement('video');
+  v.src=URL.createObjectURL(file); v.playsInline=true; v.preload='auto';
+  $('playerHost').appendChild(v); $('emptyMsg').style.display='none';
+  v.addEventListener('play',updatePlayBtn); v.addEventListener('pause',updatePlayBtn);
+  v.addEventListener('loadedmetadata',()=>applyRate(currentRate));
+  player={
+    time:()=>v.currentTime, seek:t=>{v.currentTime=Math.max(0,t);},
+    toggle:()=>{ v.paused ? v.play() : v.pause(); }, pause:()=>v.pause(), playing:()=>!v.paused,
+    rate:r=>{v.playbackRate=r;}, destroy:()=>{ URL.revokeObjectURL(v.src); }
+  };
+}
+function pauseVideo(){ if(player && player.playing()){ player.pause(); setTimeout(updatePlayBtn,150); } }
+
+/* ---------- sessions ---------- */
+function openSession(key, src){
+  const stored=loadSession(key);
+  S=stored || blankState();
+  S.key=key; S.src=src;
+  if(!stored){ S.info.reviewer=settings.reviewer||''; S.info.supervisor=settings.supervisor||''; }
+  draft=null; save(); renderAll();
+  if(stored && stored.entries.length) toast('Review restored: '+stored.entries.length+' plays.');
+}
+function loadFromInput(){
+  const id=ytIdFrom($('ytUrl').value);
+  if(!id){ toast('That YouTube link is not recognized.', {err:true}); return; }
+  openSession('yt:'+id, {kind:'yt', id, url:'https://www.youtube.com/watch?v='+id});
+  loadYouTube(id);
+  if(document.activeElement) document.activeElement.blur();
+}
+
+/* ---------- play form ---------- */
+function markPlay(){
+  if(VIEW) return;
+  if(!player){ toast('Load a video first.', {err:true}); return; }
+  const t=Math.round(player.time()*10)/10;
+  if(S.start!=null && t<S.start){ toast('This point is before the game start.', {err:true}); return; }
+  if(document.fullscreenElement) document.exitFullscreen();
+  pauseVideo();
+  draft={editId:null, t, half:S.half||1, type:'', pos:[], app:'', grade:'', comment:''};
+  renderForm(); renderLog();
+  if(document.activeElement) document.activeElement.blur();
+}
+function editPlay(id){
+  const e=S.entries.find(x=>x.id===id); if(!e) return;
+  draft={editId:e.id, t:e.t, half:e.half, type:e.type, pos:[...e.pos], app:e.app, grade:e.grade, comment:e.comment};
+  renderForm(); renderLog();
+  if(player){ player.seek(e.t); pauseVideo(); }
+  $('formPanel').scrollIntoView({block:'nearest', behavior:'smooth'});
+}
+function cancelDraft(){ if(draft){ draft=null; renderForm(); renderLog(); toast('Play discarded.'); } }
+function savePlay(again){
+  if(!draft) return;
+  draft.comment=$('fComment').value.trim();
+  const miss=[]; if(!draft.type) miss.push('play type'); if(!draft.pos.length) miss.push('position'); if(!draft.grade) miss.push('grading');
+  if(miss.length){ toast('Missing: '+miss.join(', ')+'.', {err:true}); return; }
+  const data={t:draft.t, half:draft.half, type:draft.type, pos:draft.pos, app:draft.app, grade:draft.grade, comment:draft.comment};
+  let msg;
+  if(draft.editId){ Object.assign(S.entries.find(x=>x.id===draft.editId), data); msg='Play at '+tc(data.t)+' updated.'; }
+  else { S.entries.push(Object.assign({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6), marks:[]}, data)); msg='Play at '+tc(data.t)+' saved.'; }
+  save();
+  draft = again ? {editId:null, t:data.t, half:data.half, type:data.type, pos:[], app:'', grade:'', comment:''} : null;
+  renderAll(); toast(again ? msg+' Add the next remark on the same play.' : msg);
+  if(document.activeElement) document.activeElement.blur();
+}
+function setHalf(n){
+  if((S.half||1)===n && !draft) return;
+  S.half=n; if(draft) draft.half=n;
+  save(); renderForm(); toast((n===2?'2nd':'1st')+' half.');
+}
+
+/* ---------- render ---------- */
+function renderFormStatic(){
+  $('fPos').innerHTML=POS.map(p=>`<button class="chip" data-v="${p.id}" aria-pressed="false" title="${p.name}">${p.id==='C'?'Crew':p.id}</button>`).join('');
+  $('fGrade').innerHTML=GRADES.map(g=>`<button class="chip" data-v="${g.id}" aria-pressed="false" title="${esc(g.txt)}"><span class="dot ${g.k}"></span>${g.id}</button>`).join('');
+  $('fApp').innerHTML='<option value="">None</option>'+
+    '<optgroup label="Fouls">'+FOULS.map(([c,n])=>`<option value="${c}">${c}  ${n}</option>`).join('')+'</optgroup>'+
+    '<optgroup label="Rule situations">'+SITUATIONS.map(([c,n])=>`<option value="${c}">${c}  ${n}</option>`).join('')+'</optgroup>';
+}
+function renderForm(){
+  if(VIEW) return;
+  const d=draft;
+  $('form').disabled=!d;
+  $('playHead').classList.toggle('active', !!d);
+  $('btnRetime').style.visibility = d ? 'visible' : 'hidden';
+  if(!d){
+    $('playState').textContent='Press M when a play worth a remark starts';
+    $('playTc').innerHTML='—';
+    $('fComment').value=''; $('fApp').value=''; $('gradeHelp').textContent='';
+  } else {
+    $('playState').textContent = d.editId ? 'Editing play' : (S.entries.some(e=>e.t===d.t) ? 'Another remark on this play' : 'New play');
+    const game = S.start!=null ? '<small>game '+tc(d.t-S.start)+'</small>' : '';
+    $('playTc').innerHTML=tc(d.t)+game;
+    if(document.activeElement!==$('fComment')) $('fComment').value=d.comment||'';
+    $('fApp').value=d.app||'';
+    $('gradeHelp').textContent = d.grade ? d.grade+': '+gradeOf(d.grade).txt : '';
+  }
+  const half = d ? d.half : (S.half||1);
+  $('fHalf').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', String(+b.dataset.v===half)));
+  $('fType').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', String(!!d && b.dataset.v===d.type)));
+  $('fPos').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', String(!!d && d.pos.includes(b.dataset.v))));
+  $('fGrade').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', String(!!d && b.dataset.v===d.grade)));
+  $('appHint').textContent = d && d.type==='Rules' ? 'usually set for Rules' : 'optional';
+}
+function posShort(e){ return e.pos.map(p=>p==='C'?'Crew':p).join(', '); }
+function matchesFilter(e){ return filter==='all' || e.pos.includes(filter) || (filter!=='C' && e.pos.includes('C')); }
+function renderFilters(){
+  const count=id=>S.entries.filter(e=>e.pos.includes(id)).length;
+  $('filters').innerHTML='<span class="lbl">Show</span>'+
+    `<button class="chip" data-f="all" aria-pressed="${filter==='all'}">All <small>${S.entries.length}</small></button>`+
+    POS.filter(p=>p.id!=='BJ' || count('BJ')).map(p=>`<button class="chip" data-f="${p.id}" aria-pressed="${filter===p.id}" title="${p.name}${p.id!=='C'?', plus remarks to the crew':''}">${p.id==='C'?'Crew':p.id} <small>${count(p.id)}</small></button>`).join('');
+}
+function renderLog(){
+  $('metaCount').textContent=S.entries.length;
+  renderFilters();
+  const list=sorted().filter(matchesFilter);
+  if(!S.entries.length){
+    $('logWrap').innerHTML = VIEW
+      ? '<div class="emptylog">Load the review file your supervisor sent you with Load review, at the top right.</div>'
+      : '<div class="emptylog">No plays yet. When a play deserves a remark, press M: the video pauses and the play opens in the form on the right.</div>';
+    return;
+  }
+  if(!list.length){ $('logWrap').innerHTML='<div class="emptylog">No plays for this position.</div>'; return; }
+  let html=`<table class="entries"><thead><tr><th>Time</th><th>Type</th><th>Position</th><th>Application</th><th>Grading</th><th style="width:52%">Comment</th>${VIEW?'':'<th></th>'}</tr></thead><tbody>`;
+  let prevHalf=null;
+  for(const e of list){
+    if(e.half!==prevHalf){ html+=`<tr class="sep"><td colspan="${VIEW?6:7}">${e.half===2?'2nd half':'1st half'}</td></tr>`; prevHalf=e.half; }
+    const g=gradeOf(e.grade);
+    const cls=[e.id===activeId?'now':'', draft&&draft.editId===e.id?'editing':''].join(' ');
+    html+=`<tr data-id="${e.id}" class="${cls}">
+      <td><button class="tcb" data-act="jump" title="Go to this moment">${tc(e.t)}</button></td>
+      <td>${esc(e.type)}</td>
+      <td class="pos" title="${esc(e.pos.map(posName).join(', '))}">${esc(posShort(e))}</td>
+      <td class="app">${esc(e.app)}</td>
+      <td><span class="gb ${g.k}" title="${esc(g.txt)}">${esc(e.grade)}</span></td>
+      <td class="cmt${e.comment?'':' none'}">${e.comment?esc(e.comment):'No comment'}</td>
+      ${VIEW?'':`<td class="acts"><button data-act="edit">Edit</button><button data-act="more" title="Add another remark on this play">+ Remark</button><button class="del" data-act="del">Delete</button></td>`}
+    </tr>`;
+  }
+  $('logWrap').innerHTML=html+'</tbody></table>';
+}
+function renderDetails(){
+  const I=S.info;
+  const field=(label, path, val)=>`<label class="frow"><span>${label}</span><input data-path="${path}" value="${esc(val)}" autocomplete="off"><span class="ro${val?'':' none'}">${val?esc(val):'—'}</span></label>`;
+  const note=(label, path, val, cls)=>`<label class="nrow ${cls||''}"><span>${label}</span><div><textarea data-path="${path}" spellcheck="true">${esc(val)}</textarea><div class="ro${val?'':' none'}">${val?esc(val):'—'}</div></div></label>`;
+  $('dInfo').innerHTML = '<h3>Game</h3>'+
+    field('Reviewer','reviewer',I.reviewer)+field('Supervisor','supervisor',I.supervisor)+field('Game date','date',I.date)+
+    '<h3>Crew</h3>'+CREW_POS.map(p=>field(posName(p),'crew.'+p,I.crew[p])).join('');
+  $('dNotes').innerHTML = '<h3>Notes</h3>'+note('General','notes.general',I.notes.general,'general')+
+    CREW_POS.map(p=>note(posName(p),'notes.'+p,I.notes[p])).join('');
+}
+function renderMeta(){
+  $('metaStart').textContent = S.start==null ? 'not set' : tc(S.start);
+  if(document.activeElement!==$('startInput')) $('startInput').value = S.start==null ? '' : tc(S.start);
+}
+function renderNow(){
+  if(!VIEW) return;
+  const e=S.entries.find(x=>x.id===activeId);
+  if(!e){
+    $('nowCard').innerHTML = S.entries.length
+      ? `<div class="state">${S.entries.length} plays in this review</div><div class="txt" style="margin-top:8px">Press play or Next play. Each remark appears here when the video reaches it.</div>`
+      : `<div class="state">No review loaded</div><div class="txt" style="margin-top:8px">Open the review file your supervisor sent you with Load review.</div>`;
+    return;
+  }
+  const same=sorted().filter(x=>Math.abs(x.t-e.t)<0.05);
+  $('nowCard').innerHTML=`<div class="state">${e.half===2?'2nd':'1st'} half${same.length>1?', '+same.length+' remarks on this play':''}</div>
+    <div class="num">${tc(e.t)}</div>`+same.map(x=>{ const g=gradeOf(x.grade); return `<div class="rmk">
+    <div class="tags"><span class="gb ${g.k}" title="${esc(g.txt)}">${esc(x.grade)}</span><span class="tag">${esc(x.type)}</span>${x.pos.map(p=>`<span class="tag">${esc(posName(p))}</span>`).join('')}${x.app?`<span class="tag">${esc(x.app)}</span>`:''}</div>
+    <div class="txt">${x.comment?esc(x.comment):'<span style="color:#71717A">No comment</span>'}</div></div>`; }).join('');
+}
+function renderAll(){ renderForm(); renderLog(); renderDetails(); renderMeta(); renderNow(); renderSwitches(); }
+function renderSwitches(){
+  $('stopSwitch').setAttribute('aria-pressed', String(!!settings.stop)); $('stopBox').classList.toggle('on', !!settings.stop);
+  $('capSwitch').setAttribute('aria-pressed', String(!!settings.cap)); $('capBox').classList.toggle('on', !!settings.cap);
+}
+
+/* ---------- loop: clock, active play, stop at play, caption ---------- */
+function tick(){
+  if(!player) return;
+  const t=player.time();
+  $('tcNow').firstChild.nodeValue=tc(t);
+  $('tcGame').textContent = S.start!=null ? (t>=S.start ? 'game '+tc(t-S.start) : 'pregame') : '';
+  const list=sorted();
+  // Active play: the last remarked play at or before the current time, within 20 s.
+  let act=null;
+  for(const e of list){ if(e.t<=t+0.25 && t-e.t<20) act=e; }
+  const id=act?act.id:null;
+  if(id!==activeId){
+    activeId=id;
+    document.querySelectorAll('.entries tr[data-id]').forEach(r=>r.classList.toggle('now', r.dataset.id===id));
+    renderNow();
+  }
+  // Official view: pause when normal playback crosses a remarked play.
+  if(t<stopGuard-2) stopGuard=-1;
+  if(VIEW && settings.stop && lastT!=null && player.playing() && t>lastT && t-lastT<1.5){
+    const hit=list.find(e=>e.t>lastT && e.t<=t && e.t>stopGuard);
+    if(hit){ stopGuard=hit.t+0.05; player.pause(); setTimeout(updatePlayBtn,150); }
+  }
+  lastT=t;
+  // Caption over the video in the official view.
+  const cap = VIEW && settings.cap && act && (t-act.t)<=8;
+  $('caption').classList.toggle('show', !!cap);
+  if(cap){
+    const same=list.filter(e=>Math.abs(e.t-act.t)<0.05);
+    $('caption').innerHTML=same.map(e=>`<div class="ci"><div class="ch"><span class="gb ${gradeOf(e.grade).k}">${esc(e.grade)}</span><span>${esc(e.pos.map(posName).join(', '))}${e.app?', '+esc(e.app):''}</span></div><div class="ct">${esc(e.comment)}</div></div>`).join('');
+  }
+}
+setInterval(tick, 150);
+
+/* ---------- navigation between plays ---------- */
+function goPlay(dir){
+  if(!player || !S.entries.length) return;
+  const t=player.time(), list=sorted().filter(matchesFilter);
+  const uniq=[]; list.forEach(e=>{ if(!uniq.length || Math.abs(uniq[uniq.length-1]-e.t)>0.05) uniq.push(e.t); });
+  const target = dir>0 ? uniq.find(x=>x>t+0.3) : [...uniq].reverse().find(x=>x<t-0.6);
+  if(target==null){ toast(dir>0?'That was the last play.':'That was the first play.'); return; }
+  jumpTo(target);
+}
+function jumpTo(t){
+  if(!player) return;
+  player.seek(t);
+  if(VIEW){ pauseVideo(); lastT=null; stopGuard=t+0.3; }
+}
+
+/* ---------- transport, full screen, zoom ---------- */
+let currentRate=1;
+function applyRate(r){
+  currentRate=r; if(player) player.rate(r);
+  document.querySelectorAll('[data-rate]').forEach(b=>b.setAttribute('aria-pressed', String(+b.dataset.rate===r)));
+}
+function updatePlayBtn(){ $('btnPlay').textContent = player && player.playing() ? 'Pause' : 'Play'; }
+function nudge(s){ if(player) player.seek(player.time()+s); }
+function toggleFull(){
+  if(document.fullscreenElement) document.exitFullscreen();
+  else if($('videoBox').requestFullscreen) $('videoBox').requestFullscreen().catch(()=>toast('Full screen is not available here.',{err:true}));
+}
+document.addEventListener('fullscreenchange',()=>{ $('btnFull').textContent = document.fullscreenElement ? 'Exit full screen' : 'Full screen'; });
+
+let zoomHeld=false, zoomLock=false, zoomLevel=2.5, mx=.5, my=.5;
+function applyZoom(){
+  const on=zoomHeld||zoomLock;
+  $('zoomLayer').style.transformOrigin=(mx*100)+'% '+(my*100)+'%';
+  $('zoomLayer').style.transform= on ? 'scale('+zoomLevel+')' : '';
+  $('shield').classList.toggle('zooming', on);
+  $('zoomTag').classList.toggle('show', on);
+  $('zoomTag').textContent=zoomLevel.toFixed(1)+'x';
+  $('btnZoom').setAttribute('aria-pressed', String(zoomLock));
+}
+$('shield').addEventListener('mousemove',e=>{
+  const r=$('videoBox').getBoundingClientRect();
+  mx=Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)); my=Math.min(1,Math.max(0,(e.clientY-r.top)/r.height));
+  if(zoomHeld||zoomLock) applyZoom();
+});
+$('shield').addEventListener('wheel',e=>{
+  if(!(zoomHeld||zoomLock)) return;
+  e.preventDefault();
+  zoomLevel=Math.min(5, Math.max(1.5, Math.round((zoomLevel+(e.deltaY<0?.25:-.25))*100)/100)); applyZoom();
+},{passive:false});
+$('btnZoom').onclick=()=>{ zoomLock=!zoomLock; applyZoom(); if(zoomLock) toast('Zoom on. Move the mouse over the video; scroll to change the magnification.'); };
+
+/* ---------- clipboard and export ---------- */
+async function copy(text,msg){
+  try{ await navigator.clipboard.writeText(text); }
+  catch(e){ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+  toast(msg);
+}
+// One cell of tab-separated text: no tabs or line breaks, and no leading sign that a sheet would read as a formula.
+function cell(v){ v=String(v==null?'':v).replace(/[\t\r\n]+/g,' ').trim(); return /^[=+\-@"]/.test(v) ? ' '+v : v; }
+function linkFormula(e){
+  if(!S.src || S.src.kind!=='yt') return '';
+  const url=S.src.url+'&t='+Math.floor(e.t);
+  return '=HYPERLINK("'+url+'","'+tc(e.t)+'")';
+}
+function rowOf(e){ return [tc(e.t), linkFormula(e), cell(e.type), cell(e.pos.map(posName).join(', ')), cell(e.app), cell(e.grade), cell(e.comment)].join('\t'); }
+
+/* ---------- events: source ---------- */
+$('modeYt').onclick=()=>setMode('yt');
+$('modeFile').onclick=()=>setMode('file');
+function setMode(m){
+  mode=m; $('modeYt').setAttribute('aria-pressed',m==='yt'); $('modeFile').setAttribute('aria-pressed',m==='file');
+  $('ytUrl').style.display = m==='yt' ? '' : 'none';
+  $('btnLoad').textContent = m==='yt' ? (VIEW ? 'Reload video' : 'Load video') : 'Choose video file';
+  if(!player) $('emptyMsg').textContent = VIEW ? 'Load the review file with Load review, at the top right.' : (m==='yt' ? 'Paste the game link to get started.' : 'Choose the game video file.');
+}
+$('btnLoad').onclick=()=>{
+  if(mode==='file') return $('localFile').click();
+  if(VIEW){ if(S.src && S.src.kind==='yt') loadYouTube(S.src.id); else toast('Load the review file first.',{err:true}); return; }
+  loadFromInput();
+};
+$('ytUrl').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); loadFromInput(); $('ytUrl').blur(); } });
+$('localFile').onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  if(!VIEW) openSession('file:'+f.name+':'+f.size, {kind:'file', name:f.name});
+  loadLocal(f); e.target.value='';
+};
+
+/* ---------- events: transport ---------- */
+$('shield').onclick=()=>{ if(player){ player.toggle(); setTimeout(updatePlayBtn,150); } };
+$('btnShield').onclick=()=>{
+  const off=!$('shield').classList.contains('off');
+  $('shield').classList.toggle('off',off);
+  $('btnShield').textContent = off ? 'Back to tool controls' : 'YouTube controls';
+  if(off) toast('YouTube controls on. Clicking the video pauses the shortcuts and the zoom.');
+};
+$('btnPlay').onclick=()=>{ if(player){ player.toggle(); setTimeout(updatePlayBtn,150); } };
+document.querySelectorAll('[data-nudge]').forEach(b=>b.onclick=()=>nudge(+b.dataset.nudge));
+document.querySelectorAll('[data-rate]').forEach(b=>b.onclick=()=>applyRate(+b.dataset.rate));
+$('btnFull').onclick=toggleFull;
+$('btnStartNow').onclick=()=>{ if(!player) return toast('Load a video first.',{err:true}); S.start=Math.floor(player.time()); save(); renderMeta(); toast('Game start set at '+tc(S.start)+'.'); };
+$('startInput').addEventListener('change',()=>{
+  const v=$('startInput').value.trim();
+  if(!v) S.start=null; else { const p=parseTc(v); if(p==null) return toast('Use the H:MM:SS format.',{err:true}); S.start=p; }
+  save(); renderMeta();
+});
+
+/* ---------- events: form ---------- */
+$('btnMark').onclick=markPlay;
+$('btnRetime').onclick=()=>{ if(!draft||!player) return; draft.t=Math.round(player.time()*10)/10; renderForm(); toast('Play moved to '+tc(draft.t)+'.'); };
+$('fType').addEventListener('click',e=>{ const b=e.target.closest('[data-v]'); if(!b||!draft) return; draft.type=b.dataset.v; renderForm(); });
+$('fHalf').addEventListener('click',e=>{ const b=e.target.closest('[data-v]'); if(!b) return; setHalf(+b.dataset.v); });
+$('fPos').addEventListener('click',e=>{
+  const b=e.target.closest('[data-v]'); if(!b||!draft) return; const v=b.dataset.v;
+  if(draft.pos.includes(v)) draft.pos=draft.pos.filter(x=>x!==v);
+  else draft.pos = v==='C' ? ['C'] : draft.pos.filter(x=>x!=='C').concat(v);
+  draft.pos.sort((a,b)=>POS.findIndex(p=>p.id===a)-POS.findIndex(p=>p.id===b));
+  renderForm();
+});
+$('fGrade').addEventListener('click',e=>{ const b=e.target.closest('[data-v]'); if(!b||!draft) return; draft.grade=b.dataset.v; renderForm(); });
+$('fApp').onchange=()=>{ if(draft){ draft.app=$('fApp').value; } };
+$('fComment').addEventListener('input',()=>{ if(draft) draft.comment=$('fComment').value; });
+$('btnSave').onclick=()=>savePlay(false);
+$('btnSaveMore').onclick=()=>savePlay(true);
+$('btnCancel').onclick=cancelDraft;
+
+/* ---------- events: list ---------- */
+$('filters').addEventListener('click',e=>{ const b=e.target.closest('[data-f]'); if(!b) return; filter=b.dataset.f; renderLog(); });
+$('logWrap').addEventListener('click',e=>{
+  const btn=e.target.closest('[data-act]'); if(!btn) return;
+  const row=btn.closest('tr'); const ent=S.entries.find(x=>x.id===row.dataset.id); if(!ent) return;
+  const act=btn.dataset.act;
+  if(act==='jump') jumpTo(ent.t);
+  else if(act==='edit') editPlay(ent.id);
+  else if(act==='more'){
+    draft={editId:null, t:ent.t, half:ent.half, type:ent.type, pos:[], app:'', grade:'', comment:''};
+    renderForm(); renderLog(); if(player){ player.seek(ent.t); pauseVideo(); }
+    $('formPanel').scrollIntoView({block:'nearest', behavior:'smooth'});
+  }
+  else if(act==='del'){
+    const idx=S.entries.indexOf(ent); S.entries.splice(idx,1); lastDeleted={ent,idx};
+    if(draft && draft.editId===ent.id) draft=null;
+    save(); renderAll();
+    toast('Play at '+tc(ent.t)+' deleted.',{undo:()=>{ if(lastDeleted){ S.entries.splice(lastDeleted.idx,0,lastDeleted.ent); lastDeleted=null; save(); renderAll(); $('toast').classList.remove('show'); } }});
+  }
+});
+$('btnClear').onclick=()=>{
+  if(!S.entries.length) return;
+  if(confirm('Delete all '+S.entries.length+' plays of this review? This cannot be undone.')){ S.entries=[]; draft=null; save(); renderAll(); }
+};
+
+/* ---------- events: details ---------- */
+$('details').addEventListener('input',e=>{
+  const path=e.target.dataset.path; if(!path||VIEW) return;
+  const [a,b]=path.split('.');
+  if(b) S.info[a][b]=e.target.value; else S.info[a]=e.target.value;
+  if(path==='reviewer'||path==='supervisor'){ settings[path]=e.target.value; saveSettings(); }
+  save();
+});
+
+/* ---------- events: export ---------- */
+$('scopeRows').value=settings.scopeRows;
+$('scopeRows').onchange=()=>{ settings.scopeRows=$('scopeRows').value; saveSettings(); };
+$('btnCopyRows').onclick=()=>{
+  const sc=settings.scopeRows, list=sorted().filter(e=> sc==='all' || e.half===+sc);
+  if(!list.length) return toast('No plays to copy with this selection.');
+  const lines=[]; let prev=null;
+  list.forEach(e=>{ if(sc==='all' && prev===1 && e.half===2) lines.push('END OF HALF'); lines.push(rowOf(e)); prev=e.half; });
+  const where = sc==='2' ? 'Paste them in column A, in the first row after END OF HALF.' : 'Paste them at A19.';
+  copy(lines.join('\n'), list.length+' plays copied. '+where);
+};
+$('btnCopyHead').onclick=()=>{
+  const I=S.info, link=S.src && S.src.kind==='yt' ? S.src.url : '';
+  const rows=[I.reviewer, I.supervisor, link, S.start!=null?tc(S.start):'', I.date, '',
+    I.crew.R, I.crew.DJ, I.crew.FJ, I.crew.SJ, '', I.notes.general, I.notes.R, I.notes.DJ, I.notes.FJ, I.notes.SJ];
+  copy(rows.map(cell).join('\n'), 'Game details copied. Click B1 in the review sheet and paste.');
+};
+$('btnCopyView').onclick=()=>{
+  const url=location.origin+location.pathname+'?view';
+  copy(url, 'Official view link copied. Send it with the review file from Backup.');
+};
+
+/* ---------- events: viewer switches ---------- */
+$('btnPrev').onclick=()=>goPlay(-1);
+$('btnNext').onclick=()=>goPlay(1);
+$('stopSwitch').onclick=()=>{ settings.stop=!settings.stop; saveSettings(); renderSwitches(); };
+$('capSwitch').onclick=()=>{ settings.cap=!settings.cap; saveSettings(); renderSwitches(); tick(); };
+
+/* ---------- backup and load ---------- */
+function fileName(){
+  const I=S.info, base=(I.date||'')+' '+(S.src&&S.src.kind==='yt'?S.src.id:(S.src&&S.src.name)||'review');
+  return 'review_'+base.trim().replace(/[^\w-]+/g,'_')+'.json';
+}
+$('btnBackup').onclick=()=>{
+  if(!S.key) return toast('No review is open.');
+  const blob=new Blob([JSON.stringify({app:'ifaf-game-review',v:1,session:S},null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fileName(); a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+};
+$('btnRestore').onclick=()=>$('restoreFile').click();
+$('restoreFile').onchange=async e=>{
+  const f=e.target.files[0]; if(!f) return; e.target.value='';
+  try{
+    const d=JSON.parse(await f.text());
+    if(d.app!=='ifaf-game-review' || !d.session || !Array.isArray(d.session.entries)) throw 0;
+    if(d.v>1) toast('This review was made with a newer version of the tool. Some details may not show.',{err:true});
+    S=normalize(d.session); draft=null; activeId=null; save(); renderAll();
+    if(S.src && S.src.kind==='yt'){ $('ytUrl').value=S.src.url; setMode('yt'); loadYouTube(S.src.id); toast('Review loaded: '+S.entries.length+' plays.'); }
+    else { setMode('file'); toast('Review loaded. Choose the video file of the game to continue.'); }
+  }catch(err){ toast('That file is not a valid Game Review file.',{err:true}); }
+};
+
+/* ---------- about view ---------- */
+function showAbout(on){
+  $('about').hidden=!on; $('toolView').hidden=on;
+  $('btnAbout').setAttribute('aria-pressed',on); $('btnAbout').textContent = on ? 'Back to the tool' : 'How it works';
+  if(on) pauseVideo();
+  if(on) window.scrollTo(0,0);
+}
+const aboutOpen=()=>!$('about').hidden;
+$('btnAbout').onclick=()=>{ const on=!aboutOpen(); history.replaceState(null,'',on?'#about':location.pathname+location.search); showAbout(on); };
+document.querySelectorAll('.toc a').forEach(a=>a.addEventListener('click',e=>{ e.preventDefault(); document.querySelector(a.getAttribute('href')).scrollIntoView({behavior:'smooth'}); }));
+if(location.hash==='#about') showAbout(true);
+
+/* ---------- welcome tour (reviewer only) ---------- */
+const TOUR=[
+  {title:'Welcome to Game Review', targets:['srcBar'],
+   body:'<p>This tool builds the play list of the IFAF game review sheet while you watch.</p><p>Paste the YouTube link of the game and press Load video. Then set the <strong>Game start</strong> under the video so pregame footage is ignored.</p>'},
+  {title:'Mark and grade a play', targets:['formPanel'],
+   body:'<p>When a play deserves a remark, press <kbd>M</kbd>. The video pauses and the play opens here with its timecode.</p><p>Choose play type, positions, application and grade, write the comment and save with <kbd>Ctrl</kbd> + <kbd>Enter</kbd>.</p>'},
+  {title:'Review and copy', targets:['logHead'],
+   body:'<p>Every play can be edited or deleted from the list. When you finish, copy the plays and paste them at A19 of the review sheet. Game details and notes have their own copy button at the bottom.</p><p>Your work saves automatically in this browser.</p>'},
+  {title:'Share with the officials', targets:['btnAbout','btnBackup','btnRestore'], place:'below-right',
+   body:'<p><strong>Backup</strong> downloads the review file. Send it to the officials with the official view link, and they can replay your review with every remark in place.</p><p><strong>How it works</strong> has the full guide and every shortcut.</p>'}
+];
+let tourIdx=-1;
+const tourOpen=()=>!$('tour').hidden;
+function startTour(){
+  if(aboutOpen()){ history.replaceState(null,'',location.pathname+location.search); showAbout(false); }
+  pauseVideo(); $('tour').hidden=false; tourIdx=0; showTourStep(); $('tourNext').focus();
+}
+function endTour(){ $('tour').hidden=true; tourIdx=-1; try{ localStorage.setItem('review:tour','done'); }catch(e){} window.scrollTo({top:0,behavior:'smooth'}); }
+function tourRect(){
+  const els=TOUR[tourIdx].targets.map(id=>$(id)).filter(Boolean); if(!els.length) return null;
+  const rs=els.map(e=>e.getBoundingClientRect());
+  const top=Math.min(...rs.map(r=>r.top)), left=Math.min(...rs.map(r=>r.left));
+  return {top, left, width:Math.max(...rs.map(r=>r.right))-left, height:Math.max(...rs.map(r=>r.bottom))-top};
+}
+function placeTour(){
+  if(!tourOpen()) return;
+  const r=tourRect(), spot=$('tourSpot'), card=$('tourCard'), pad=8, gap=18;
+  const vw=window.innerWidth, vh=window.innerHeight, cw=card.offsetWidth, ch=card.offsetHeight;
+  if(!r){ spot.classList.add('none'); card.style.left=(vw-cw)/2+'px'; card.style.top=(vh-ch)/2+'px'; return; }
+  spot.classList.remove('none');
+  Object.assign(spot.style,{top:r.top-pad+'px',left:r.left-pad+'px',width:r.width+pad*2+'px',height:r.height+pad*2+'px'});
+  let top, left;
+  if(TOUR[tourIdx].place==='below-right'){ top=r.top+r.height+pad+gap; left=r.left+r.width-cw; }
+  else if(r.left-pad-gap-cw>=12){ left=r.left-pad-gap-cw; top=r.top; }
+  else if(vw-(r.left+r.width+pad+gap)>=cw+12){ left=r.left+r.width+pad+gap; top=r.top; }
+  else if(vh-(r.top+r.height+pad+gap)>=ch+12){ top=r.top+r.height+pad+gap; left=r.left; }
+  else { top=r.top-pad-gap-ch; left=r.left; }
+  card.style.left=Math.max(12,Math.min(left,vw-cw-12))+'px';
+  card.style.top=Math.max(12,Math.min(top,vh-ch-12))+'px';
+}
+function showTourStep(){
+  const st=TOUR[tourIdx];
+  $('tourStep').textContent='Step '+(tourIdx+1)+' of '+TOUR.length;
+  $('tourTitle').textContent=st.title; $('tourBody').innerHTML=st.body;
+  $('tourDots').innerHTML=TOUR.map((_,i)=>'<i class="'+(i===tourIdx?'on':'')+'"></i>').join('');
+  $('tourBack').hidden=tourIdx===0;
+  $('tourNext').textContent= tourIdx===TOUR.length-1 ? 'Start reviewing' : 'Next';
+  const first=$(st.targets[0]);
+  if(first){ const rr=first.getBoundingClientRect(); if(rr.top<0 || rr.bottom>window.innerHeight) first.scrollIntoView({block:'center'}); }
+  requestAnimationFrame(placeTour);
+}
+$('tourNext').onclick=()=>{ if(tourIdx<TOUR.length-1){ tourIdx++; showTourStep(); } else endTour(); };
+$('tourBack').onclick=()=>{ if(tourIdx>0){ tourIdx--; showTourStep(); } };
+$('tourSkip').onclick=endTour;
+$('btnTour').onclick=startTour;
+window.addEventListener('resize',placeTour);
+window.addEventListener('scroll',placeTour,{passive:true});
+document.addEventListener('keydown',e=>{
+  if(!tourOpen()) return;
+  if(e.key==='Escape') endTour();
+  else if(e.key==='ArrowRight' || (e.key==='Enter' && !e.target.closest('button'))) $('tourNext').click();
+  else if(e.key==='ArrowLeft') $('tourBack').click();
+  else if(e.key!=='Tab') e.preventDefault();
+  e.stopImmediatePropagation();
+},true);
+
+/* ---------- keyboard ---------- */
+// Clicking a button does not move the focus to it, so Space keeps controlling the video
+// instead of pressing the last chip again.
+document.addEventListener('mousedown',e=>{
+  const typing=document.activeElement && document.activeElement.matches('input,select,textarea');
+  if(!typing && e.target.closest('button') && !e.target.closest('.tour')) e.preventDefault();
+});
+document.addEventListener('keydown',e=>{
+  if(aboutOpen()) return;
+  // Save works everywhere, also while typing the comment.
+  if((e.ctrlKey||e.metaKey) && e.key==='Enter'){ if(draft){ e.preventDefault(); savePlay(false); } return; }
+  if(e.target.closest('input,select,textarea')){ if(e.key==='Escape') e.target.blur(); return; }
+  if(e.metaKey||e.ctrlKey||e.altKey) return;
+  switch(e.key){
+    case 'm': case 'M': markPlay(); break;
+    case 'Escape': if(draft) cancelDraft(); else if(zoomLock){ zoomLock=false; applyZoom(); } break;
+    case 'h': case 'H': if(!VIEW) setHalf((draft?draft.half:(S.half||1))===1?2:1); break;
+    case ' ': if(player){ player.toggle(); setTimeout(updatePlayBtn,150); } break;
+    case 'ArrowLeft': nudge(e.shiftKey?-1:-5); break;
+    case 'ArrowRight': nudge(e.shiftKey?1:5); break;
+    case ',': nudge(-0.2); break;
+    case '.': nudge(0.2); break;
+    case 'n': case 'N': goPlay(1); break;
+    case 'p': case 'P': goPlay(-1); break;
+    case 'f': case 'F': toggleFull(); break;
+    case 'z': case 'Z':
+      if(e.shiftKey){ zoomLock=!zoomLock; applyZoom(); }
+      else if(!e.repeat){ zoomHeld=true; applyZoom(); }
+      break;
+    default: return;
+  }
+  e.preventDefault();
+});
+document.addEventListener('keyup',e=>{ if(e.key==='z'||e.key==='Z'){ zoomHeld=false; applyZoom(); } });
+window.addEventListener('blur',()=>{
+  zoomHeld=false; applyZoom();
+  setTimeout(()=>{ if(document.activeElement && document.activeElement.tagName==='IFRAME') $('focusWarn').classList.add('show'); },0);
+});
+window.addEventListener('focus',()=>$('focusWarn').classList.remove('show'));
+document.addEventListener('mousedown',()=>$('focusWarn').classList.remove('show'));
+
+/* ---------- boot ---------- */
+if(location.protocol==='file:') $('fileBanner').classList.add('show');
+renderFormStatic();
+if(VIEW){
+  document.title='IFAF Game Review, official view';
+  $('btnLoad').textContent='Reload video';
+  try{ const raw=localStorage.getItem('review:viewer'); if(raw) S=normalize(JSON.parse(raw)); }catch(e){}
+  renderAll(); setMode(S.src && S.src.kind==='file' ? 'file' : 'yt');
+  if(S.src && S.src.kind==='yt') loadYouTube(S.src.id);
+} else {
+  renderAll();
+  const lastKey=(()=>{ try{ return localStorage.getItem('review:last'); }catch(e){ return null; } })();
+  const st=lastKey && loadSession(lastKey);
+  if(st){
+    S=st; renderAll();
+    if(st.src && st.src.kind==='yt'){ $('ytUrl').value=st.src.url; loadYouTube(st.src.id); }
+    else if(st.src && st.src.kind==='file'){ setMode('file'); $('emptyMsg').textContent='Choose the file '+st.src.name+' again to continue the review.'; }
+  }
+  let seen=null; try{ seen=localStorage.getItem('review:tour'); }catch(e){}
+  if(!seen && location.hash!=='#about') setTimeout(startTour, 400);
+}
+applyZoom();
+})();
+</script>
+</body>
+</html>
